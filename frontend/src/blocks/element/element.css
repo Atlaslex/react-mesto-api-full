@@ -1,0 +1,8 @@
+.element {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  min-width: 282px;
+  background-color: white;
+  border-radius: 10px;
+}

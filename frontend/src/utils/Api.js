@@ -114,9 +114,9 @@ class Api {
 }
 
 const api = new Api({
-  serverUrl: 'https://mesto.nomoreparties.co/v1/cohort-45',
+  serverUrl: 'http://atlaslex.students.nomoredomains.icu/',
   headers: {
-    authorization: '5bbfedaa-4f8d-4bb6-adea-81a84541445e',
+    // authorization: '5bbfedaa-4f8d-4bb6-adea-81a84541445e',
     'Content-Type': 'application/json',
   }
 });
@@ -124,3 +124,4 @@ const api = new Api({
 export default api;
 
 
+// 'https://mesto.nomoreparties.co/v1/cohort-45'

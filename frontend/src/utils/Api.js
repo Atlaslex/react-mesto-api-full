@@ -114,7 +114,7 @@ class Api {
 }
 
 const api = new Api({
-  serverUrl: 'https://api.atlaslex.students.nomoredomains.icu/',
+  serverUrl: 'https://api.atlaslex.students.nomoredomains.icu',
   headers: {
     // authorization: '5bbfedaa-4f8d-4bb6-adea-81a84541445e',
     'Content-Type': 'application/json',

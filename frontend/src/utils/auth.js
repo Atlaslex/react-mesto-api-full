@@ -1,4 +1,4 @@
-const serverUrl = 'https://auth.nomoreparties.co';
+const serverUrl = 'https://api.atlaslex.students.nomoredomains.icu';
 
 const checkAnswer = (res) => {
   if(res.ok) {

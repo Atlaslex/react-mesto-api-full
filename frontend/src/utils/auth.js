@@ -11,6 +11,7 @@ const checkAnswer = (res) => {
 export const getUserData = async (token) => {
   const res = await fetch(`${serverUrl}/users/me`, {
     method: 'GET',
+    credentials: 'include',
     headers: {
       "Content-Type": "application/json",
       "Authorization" : `Bearer ${token}`
@@ -24,6 +25,7 @@ export const getUserData = async (token) => {
 export const register = async (email, password) => {
   const res = await fetch(`${serverUrl}/signup`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -38,6 +40,7 @@ export const register = async (email, password) => {
 export const authorize = async (email, password) => {
   const res = await fetch(`${serverUrl}/signin`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

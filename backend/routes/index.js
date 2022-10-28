@@ -1,21 +1,34 @@
-const router = require('express').Router();
-const auth = require('../middlewares/auth');
+const express = require('express');
+const { celebrate, Joi } = require('celebrate');
+
+const app = express();
+const { isAuthorized } = require('../middlewares/auth');
 const { login, createUser } = require('../controllers/users');
-const userRouter = require('./users');
-const cardRouter = require('./cards');
-const { loginUserValidation, createUserValidation } = require('../middlewares/validation');
-const notFoundController = require('../controllers/notFoundController');
-const { signOut } = require('../controllers/signOut');
+const routesUser = require('./users');
+const routesCard = require('./cards');
+const { LinksRegExp } = require('../utils/all-reg-exp');
 
-router.post('/signin', loginUserValidation, login);
-router.post('/signup', createUserValidation, createUser);
+app.use('/api/users', isAuthorized, routesUser);
+app.use('/api/cards', isAuthorized, routesCard);
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+app.post('/api/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru'] } }),
+    password: Joi.string().required(),
+  }),
+}), login);
+app.post('/api/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(LinksRegExp),
+    email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'ru'] } }),
+    password: Joi.string().required(),
+  }),
+}), createUser);
 
-router.use(auth);
-
-router.get('/signout', signOut);
-router.use('/', userRouter);
-router.use('/', cardRouter);
-
-router.use('*', notFoundController);
-
-module.exports = router;
+module.exports = app;

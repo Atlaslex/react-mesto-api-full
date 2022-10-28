@@ -1,135 +1,140 @@
-const bcrypt = require('bcryptjs');
+require('dotenv').config();
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const Users = require('../models/user');
-const NotFoundError = require('../errors/NotFoundError');
-const IncorrectData = require('../errors/IncorrectData');
-const ExistEmailError = require('../errors/ExistEmailError');
-const {
-  INCORRECT_DATA_MESSAGE,
-  NOT_FOUND_USER_ID_MESSAGE,
-  EXIST_EMAIL_MESSAGE,
-} = require('../utils/constants');
 
-const { NODE_ENV, JWT_SECRET_KEY } = process.env;
+const { NODE_ENV, JWT_SECRET } = process.env;
+const SECRET_KEY = 'very_secret';
+const MONGO_DUPLICATE_ERROR_CODE = 11000;
+const SALT_ROUNDS = 10;
+
+const BadRequestError = require('../utils/errorcodes/bad-request-error');
+const NotFoundError = require('../utils/errorcodes/not-found-error');
+const NotUniqueEmailError = require('../utils/errorcodes/not-unique-email');
+const NotDataError = require('../utils/errorcodes/not-pass-or-email');
+const User = require('../models/user');
+
+const {
+  CORRECT_CODE,
+  CREATE_CODE,
+} = require('../utils/correctcodes');
+
+module.exports.getUsers = (req, res, next) => {
+  User.find({})
+    .then((user) => res.status(CORRECT_CODE).send(user))
+    .catch(next);
+};
+
+module.exports.getUserSelfInfo = (req, res, next) => {
+  User.findById(req.user.id)
+    .then((user) => {
+      res.status(CORRECT_CODE).send(user);
+    })
+    .catch(next);
+};
+module.exports.getUserById = (req, res, next) => {
+  User
+    .findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError();
+      }
+      res.status(CORRECT_CODE).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError());
+        return;
+      }
+      next();
+    })
+    .catch(next);
+};
+
+module.exports.createUser = ((req, res, next) => {
+  const {
+    // eslint-disable-next-line no-unused-vars
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt
+    .hash(password, SALT_ROUNDS)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email: req.body.email,
+      password: hash,
+    }))
+    .then((user) => res.status(CREATE_CODE).send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некорректные данные для запроса'));
+      }
+      if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+        next(new NotUniqueEmailError());
+      }
+      next(err);
+    })
+    .catch(next);
+});
 
 module.exports.login = (req, res, next) => {
-  console.log(NODE_ENV);
   const { email, password } = req.body;
-  Users.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET_KEY : 'dev-secret', { expiresIn: '7d' });
-      res.cookie('jwt', token, {
-        maxAge: 3600000,
-        httpOnly: true,
-      });
+
+  User.findUserByCredentials(email, password)
+    .then(([user, isPasswordCorrect]) => {
+      if (!isPasswordCorrect) {
+        throw new NotDataError();
+      }
+      return jwt.sign({ id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : SECRET_KEY, { expiresIn: '7d' });
+    })
+    .then((token) => {
       res.send({ token });
     })
     .catch(next);
 };
 
-module.exports.getUsers = (req, res, next) => {
-  Users.find({})
-    .then((user) => res.send(user))
+module.exports.updateProfile = (req, res, next) => {
+  User.findByIdAndUpdate(req.user.id, req.body, {
+    new: true,
+    runValidators: true,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError();
+      }
+      return res.status(CORRECT_CODE).send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError());
+      }
+      next(err);
+    })
     .catch(next);
 };
 
-module.exports.getUserById = (req, res, next) => {
-  Users.findById(req.params.id).orFail(new NotFoundError(NOT_FOUND_USER_ID_MESSAGE))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'NotFound') {
-        next(err);
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
-      }
-    });
-};
-
-module.exports.getUserMe = (req, res, next) => {
-  const userId = req.user._id;
-  Users.findById(userId).orFail(new NotFoundError(NOT_FOUND_USER_ID_MESSAGE))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'NotFound') {
-        next(err);
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
-      }
-    });
-};
-
-module.exports.createUser = (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
-  bcrypt.hash(password, 10)
-    .then((hash) => Users.create({
-      name, about, avatar, email, password: hash,
-    }))
-    .then((user) => res.status(201).send({
-      name, about, avatar, email, _id: user._id,
-    }))
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(new ExistEmailError(EXIST_EMAIL_MESSAGE));
-      } else if (err.name === 'ValidationError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
-      }
-    });
-};
-
-module.exports.updateUser = (req, res, next) => {
-  const { name, about } = req.body;
-  console.dir(req.body);
-  Users.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
-    {
-      new: true,
-      runValidators: true,
-      upsert: false,
-    },
-  ).orFail(new NotFoundError(NOT_FOUND_USER_ID_MESSAGE))
+module.exports.updateAvatar = (req, res, next) => {
+  User.findByIdAndUpdate(req.user.id, req.body, {
+    new: true,
+    runValidators: true,
+  })
     .then((user) => {
-      console.dir(user);
-      res.send(user);
+      if (!user) {
+        throw new NotFoundError();
+      }
+      return res.status(CORRECT_CODE).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(NOT_FOUND_USER_ID_MESSAGE));
-      } else {
-        next(err);
+      if (err.name === 'CastError') {
+        next(new BadRequestError());
       }
-    });
-};
 
-module.exports.updateAvatarUser = (req, res, next) => {
-  const { avatar } = req.body;
-
-  Users.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  ).orFail(new NotFoundError(NOT_FOUND_USER_ID_MESSAGE))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(NOT_FOUND_USER_ID_MESSAGE));
-      } else {
-        next(err);
-      }
-    });
+      next(err);
+    })
+    .catch(next);
 };

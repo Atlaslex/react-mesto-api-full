@@ -1,86 +1,100 @@
-const Cards = require('../models/card');
-const IncorrectData = require('../errors/IncorrectData');
-const {
-  INCORRECT_DATA_MESSAGE,
-  NOT_FOUND_CARD_ID_MESSAGE,
-  NOT_RIGHTS_MESSAGE,
-} = require('../utils/constants');
-const NotRightError = require('../errors/NotRightError');
-const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../utils/errorcodes/bad-request-error');
+const NotFoundError = require('../utils/errorcodes/not-found-error');
+const BadRequireToken = require('../utils/errorcodes/bad-require-token');
 
-module.exports.getCards = (req, res, next) => {
-  Cards.find({})
-    .then((cards) => res.send(cards))
+const Card = require('../models/card');
+
+const {
+  CORRECT_CODE,
+  CREATE_CODE,
+} = require('../utils/correctcodes');
+
+module.exports.getCards = (_req, res, next) => {
+  Card.find({})
+    .then((cards) => res.status(CORRECT_CODE).send(cards))
     .catch(next);
 };
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
-  Cards.create({ name, link, owner })
-    .then((cards) => res.send(cards))
+  Card.create({
+    name,
+    link,
+    owner: req.user.id,
+  })
+    .then((card) => {
+      res.status(CREATE_CODE).send(card);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
+        next(new BadRequestError());
       }
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Cards.findById(req.params.cardId).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
+  Card
+    .findById(req.params.cardId)
     .then((card) => {
-      const user = String(req.user._id);
-      const cardOwner = String(card.owner);
-      if (user === cardOwner) {
-        Cards.findByIdAndRemove(req.params.cardId)
-          .then((deletedCard) => res.send(deletedCard));
-      } else {
-        next(new NotRightError(NOT_RIGHTS_MESSAGE));
+      if (!card) {
+        next(new NotFoundError());
       }
+      if (JSON.stringify(card.owner) !== JSON.stringify(req.user.id)) {
+        throw new BadRequireToken();
+      }
+      return Card.findByIdAndRemove(req.params.cardId);
+    })
+    .then((cards) => {
+      res.status(CORRECT_CODE).send(cards);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
+        next(new BadRequestError());
       }
+      next(err);
     });
 };
 
 module.exports.likeCard = (req, res, next) => {
-  Cards.findByIdAndUpdate(
+  Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user.id } },
     { new: true },
-  ).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
-    .then((cards) => res.send(cards))
-    .catch((err) => {
-      if (err.name === 'NotFound') {
-        next(err);
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
+  )
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError();
       }
-    });
+      return res.status(CORRECT_CODE).send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError());
+      }
+      next(err);
+    })
+    .catch(next);
 };
 
-module.exports.dislikeCard = (req, res, next) => {
-  Cards.findByIdAndUpdate(
+module.exports.delLikeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user.id } },
     { new: true },
-  ).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
-    .then((cards) => res.send(cards))
-    .catch((err) => {
-      if (err.name === 'NotFound') {
-        next(err);
-      } else if (err.name === 'CastError') {
-        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
-      } else {
-        next(err);
+  )
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError();
       }
-    });
+      return res.status(CORRECT_CODE).send({ data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError());
+      }
+      next(err);
+    })
+    .catch(next);
 };

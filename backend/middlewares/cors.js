@@ -1,6 +1,6 @@
 const allowedCors = [
-  'https://kazarinov.mesto.nomoredomains.icu',
-  'http://kazarinov.mesto.nomoredomains.icu',
+  'https://atlaslex.students.nomoredomains.icu',
+  'http://atlaslex.students.nomoredomains.icu',
   'http://localhost:3000',
   'https://localhost:3000',
 ];

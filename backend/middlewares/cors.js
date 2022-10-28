@@ -1,4 +1,5 @@
-const allowedCors = ['https://atlaslex.students.nomoredomains.icu',
+const allowedCors = [
+  'https://atlaslex.students.nomoredomains.icu',
   'http://atlaslex.students.nomoredomains.icu',
   'http://localhost:3000',
   'https://localhost:3000',

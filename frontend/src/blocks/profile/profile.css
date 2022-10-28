@@ -1,0 +1,22 @@
+.profile {
+  display: flex;
+  flex-wrap: wrap;
+  margin: auto;
+  color: #fff;
+  padding-top: 40px;
+  width: 68.75%;
+  min-height: 120px;
+
+}
+
+@media screen and (max-width: 968px) {
+  .profile {
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .profile {
+    padding-top: 42px;
+  }
+}

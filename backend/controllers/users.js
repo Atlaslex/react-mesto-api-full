@@ -1,22 +1,50 @@
-require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
 const SECRET_KEY = 'very_secret';
 const MONGO_DUPLICATE_ERROR_CODE = 11000;
 const SALT_ROUNDS = 10;
 
-const BadRequestError = require('../utils/errorcodes/bad-request-error');
-const NotFoundError = require('../utils/errorcodes/not-found-error');
-const NotUniqueEmailError = require('../utils/errorcodes/not-unique-email');
-const NotDataError = require('../utils/errorcodes/not-pass-or-email');
+const BadRequestError = require('../errors/ErrorBadRequest');
+const NotFoundError = require('../errors/ErrorNotFound');
+const NotUniqueEmailError = require('../errors/NotUniqueEmail');
+const NotDataError = require('../errors/NotPassOrEmail');
 const User = require('../models/user');
 
 const {
   CORRECT_CODE,
   CREATE_CODE,
 } = require('../utils/correctcodes');
+
+module.exports.createUser = ((req, res, next) => {
+  const {
+    name, about, avatar, password,
+  } = req.body;
+  bcrypt
+    .hash(password, SALT_ROUNDS)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email: req.body.email,
+      password: hash,
+    }))
+    .then((user) => res.status(CREATE_CODE).send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Некорректные данные для запроса'));
+      } else if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+        next(new NotUniqueEmailError());
+      } else {
+        next(err);
+      }
+    });
+});
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -45,52 +73,18 @@ module.exports.getUserById = (req, res, next) => {
         next(new BadRequestError());
         return;
       }
-      next();
-    })
-    .catch(next);
-};
-
-module.exports.createUser = ((req, res, next) => {
-  const {
-    // eslint-disable-next-line no-unused-vars
-    name, about, avatar, email, password,
-  } = req.body;
-  bcrypt
-    .hash(password, SALT_ROUNDS)
-    .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email: req.body.email,
-      password: hash,
-    }))
-    .then((user) => res.status(CREATE_CODE).send({
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      email: user.email,
-    }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные для запроса'));
-      }
-      if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
-        next(new NotUniqueEmailError());
-      }
       next(err);
-    })
-    .catch(next);
-});
+    });
+};
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
   User.findUserByCredentials(email, password)
     .then(([user, isPasswordCorrect]) => {
       if (!isPasswordCorrect) {
         throw new NotDataError();
       }
-      return jwt.sign({ id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : SECRET_KEY, { expiresIn: '7d' });
+      return jwt.sign({ id: user._id }, SECRET_KEY, { expiresIn: '5d' });
     })
     .then((token) => {
       res.send({ token });
@@ -112,10 +106,10 @@ module.exports.updateProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-      next(err);
-    })
-    .catch(next);
+    });
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -132,9 +126,8 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-
-      next(err);
-    })
-    .catch(next);
+    });
 };

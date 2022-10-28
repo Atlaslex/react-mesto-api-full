@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const NotDataError = require('../utils/errorcodes/not-pass-or-email');
+const NotDataError = require('../errors/NotPassOrEmail');
 const { LinksRegExp } = require('../utils/all-reg-exp');
 
 const {
   userNameValidator,
   userAboutValidator,
   userEmailValidator,
-  userPasswordValidator,
 } = require('../validators/validators');
 
 const userSchema = new mongoose.Schema({
@@ -29,7 +28,7 @@ const userSchema = new mongoose.Schema({
       validator(v) {
         return LinksRegExp.test(v);
       },
-      message: (props) => `${props.value} is not a valid URL-link!/${props.value} Не верный формат URL-ссылки!!`,
+      message: (props) => `${props.value} Неверный формат URL-ссылки!`,
     },
   },
 
@@ -43,7 +42,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     select: false,
-    validate: userPasswordValidator,
   },
 });
 

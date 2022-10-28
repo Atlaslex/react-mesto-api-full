@@ -23,14 +23,7 @@ module.exports.userEmailValidator = [
   }),
 
 ];
-module.exports.userPasswordValidator = [
-  validate({
-    validator: 'isLength',
-    arguments: [8],
-    select: false,
-    message: 'Поле "password" должно содержать не менее {ARGS[0]} символов',
-  }),
-];
+
 module.exports.cardNameValidator = [
   validate({
     validator: 'isLength',
@@ -45,6 +38,6 @@ module.exports.cardLinkValidator = [
     protocols: true,
     require_valid_protocol: true,
     validate_length: true,
-    message: 'Поле "link" должно содержать URL-ссылку',
+    message: 'Поле "name" должно содержать URL-ссылку',
   }),
 ];

@@ -1,6 +1,6 @@
-const BadRequestError = require('../utils/errorcodes/bad-request-error');
-const NotFoundError = require('../utils/errorcodes/not-found-error');
-const BadRequireToken = require('../utils/errorcodes/bad-require-token');
+const BadRequestError = require('../errors/ErrorBadRequest');
+const BadRequireToken = require('../errors/TokenBadRequire');
+const NotFoundError = require('../errors/ErrorNotFound');
 
 const Card = require('../models/card');
 
@@ -8,12 +8,6 @@ const {
   CORRECT_CODE,
   CREATE_CODE,
 } = require('../utils/correctcodes');
-
-module.exports.getCards = (_req, res, next) => {
-  Card.find({})
-    .then((cards) => res.status(CORRECT_CODE).send(cards))
-    .catch(next);
-};
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -28,9 +22,15 @@ module.exports.createCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-      next(err);
-    })
+    });
+};
+
+module.exports.getCards = (_req, res, next) => {
+  Card.find({})
+    .then((cards) => res.status(CORRECT_CODE).send(cards))
     .catch(next);
 };
 
@@ -39,7 +39,7 @@ module.exports.deleteCard = (req, res, next) => {
     .findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        next(new NotFoundError());
+        throw new NotFoundError();
       }
       if (JSON.stringify(card.owner) !== JSON.stringify(req.user.id)) {
         throw new BadRequireToken();
@@ -52,8 +52,9 @@ module.exports.deleteCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -72,10 +73,10 @@ module.exports.likeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-      next(err);
-    })
-    .catch(next);
+    });
 };
 
 module.exports.delLikeCard = (req, res, next) => {
@@ -93,8 +94,8 @@ module.exports.delLikeCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError());
+      } else {
+        next(err);
       }
-      next(err);
-    })
-    .catch(next);
+    });
 };

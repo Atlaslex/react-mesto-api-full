@@ -1,0 +1,13 @@
+.sign-up__container {
+  width: 430px;
+  padding-top: 60px;
+  margin: 0 auto;
+  color: #fff;
+  text-align: center;
+}
+
+@media screen and (max-width: 540px) {
+  .sign-up__container {
+    width: 220px;
+  }
+}

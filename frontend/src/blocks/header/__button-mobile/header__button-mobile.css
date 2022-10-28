@@ -1,0 +1,15 @@
+.header__button-mobile {
+    background-image: url(./header__button-mobile.svg);
+    width: 24px;
+    height: 21px;
+    margin-right: 30px;
+    background-color: transparent;
+    padding: 0;
+    border: 0;
+    
+}
+
+.header__button-mobile:hover {
+    cursor: pointer;
+    opacity: .6;
+}

@@ -1,9 +1,0 @@
-.form__save_inactive {
-  background-color: white;
-  border: 1px black solid;
-  opacity: .2;
-  color: black;
-  cursor: default;
-  pointer-events: none;
-}
-

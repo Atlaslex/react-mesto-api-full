@@ -40,36 +40,10 @@ function App({ history }) {
 
   useEffect(() => {
     getUserEmail();
-}, []);
-
-  // useEffect(() => {
-  //   if (loggedIn) {
-  //     api
-  //       .getUserInfo()
-  //       .then((userInfo) => {
-  //         setCurrentUser(userInfo);
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // }, [loggedIn]);
-
-  // useEffect(() => {
-  //   if (loggedIn) {
-  //     api
-  //       .getInitialCards()
-  //       .then((cardsInfo) => {
-  //         setCards(cardsInfo);
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // }, [loggedIn]);
+  }, []);
 
   useEffect(() => {
-    if(loggedIn){
+    if (loggedIn) {
       Promise.all([api.getUserInfo(), api.getInitialCards()])
         .then(([userInfo, initialCards]) => {
           setCurrentUser(userInfo);
@@ -82,9 +56,9 @@ function App({ history }) {
   }, [loggedIn])
 
   const getUserEmail = async (token) => {
-    try{
+    try {
       const res = await getUserData(token);
-      if(res.email) {
+      if (res.email) {
         setUserEmail(res.email);
         setLoggedIn(true);
         history.push('/')
@@ -92,34 +66,9 @@ function App({ history }) {
         setLoggedIn(false);
       }
     } catch {
-      console.error("Ошибка");
+      console.error("Ошибка?");
     }
   }
-
-  // const getUserEmail = async (token) => {
-  //   try {
-  //     const res = await getUserData(token);
-  //     if (res.email) {
-  //       setUserEmail(res.email);
-  //       setLoggedIn(true);
-  //       history.push('/')
-  //     } else {
-  //       // localStorage.removeItem('token')
-  //       setLoggedIn(false);
-  //     }
-  //   } catch {
-  //     console.error("Ошибка");
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   const token = localStorage.getItem('token');
-  //   if (token) {
-  //     getUserEmail(token);
-  //   }
-  //   // eslint-disable-next-line
-  // }, []);
-
 
   const closeAllPopups = () => {
     setSelectCard({ isOpen: false, card: {} });
@@ -191,31 +140,9 @@ function App({ history }) {
 
   }
 
-  // function handleCardLike(card) {
-  //   const isLiked = card.likes.some(i => i === currentUser._id);
-  //   if (isLiked) {
-  //     api.deleteLike(card)
-  //       .then((newCard) => {
-  //         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  //   else {
-  //     api.setLike(card)
-  //       .then((newCard) => {
-  //         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // }
-
   function handleCardLike(card) {
     const isLiked = card.likes.some(i => i === currentUser._id);
-    if(isLiked) {
+    if (isLiked) {
       api.deleteLike(card)
         .then((newCard) => {
           setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
@@ -292,7 +219,7 @@ function App({ history }) {
       setUserEmail('');
     } catch (err) {
       console.dir(err);
-    } 
+    }
   }
 
 

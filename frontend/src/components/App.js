@@ -82,20 +82,35 @@ function App({ history }) {
   }, [loggedIn])
 
   const getUserEmail = async (token) => {
-    try {
+    try{
       const res = await getUserData(token);
-      if (res.email) {
+      if(res.email) {
         setUserEmail(res.email);
         setLoggedIn(true);
         history.push('/')
       } else {
-        // localStorage.removeItem('token')
         setLoggedIn(false);
       }
     } catch {
       console.error("Ошибка");
     }
   }
+
+  // const getUserEmail = async (token) => {
+  //   try {
+  //     const res = await getUserData(token);
+  //     if (res.email) {
+  //       setUserEmail(res.email);
+  //       setLoggedIn(true);
+  //       history.push('/')
+  //     } else {
+  //       // localStorage.removeItem('token')
+  //       setLoggedIn(false);
+  //     }
+  //   } catch {
+  //     console.error("Ошибка");
+  //   }
+  // }
 
   // useEffect(() => {
   //   const token = localStorage.getItem('token');

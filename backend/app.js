@@ -11,7 +11,7 @@ const { requestLogger, errorLogger } = require('./middlewares/loger');
 
 const { PORT = 3000 } = process.env;
 
-console.log(process.env.NODE_ENV);
+// console.log(process.env.NODE_ENV);
 
 const app = express();
 app.use(corsMiddleware);

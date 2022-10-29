@@ -9,7 +9,7 @@
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix"
   },
-  "author": "Sergey Kazarinov",
+  "author": "Atlaslex",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.23.1",

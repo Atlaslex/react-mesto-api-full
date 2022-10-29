@@ -17,6 +17,7 @@
     "eslint-plugin-import": "^2.26.0",
     "nodemon": "^2.0.20"
   },
+  "homepage": "https://api.atlaslex.students.nomoredomains.icu/sign-in",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.0",

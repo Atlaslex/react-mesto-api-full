@@ -1,57 +1,48 @@
-const BadRequestError = require('../errors/ErrorBadRequest');
-const BadRequireToken = require('../errors/TokenBadRequire');
-const NotFoundError = require('../errors/ErrorNotFound');
-
-const Card = require('../models/card');
-
+const Cards = require('../models/card');
+const IncorrectData = require('../errors/IncorrectData');
 const {
-  CORRECT_CODE,
-  CREATE_CODE,
-} = require('../utils/correctcodes');
+  INCORRECT_DATA_MESSAGE,
+  NOT_FOUND_CARD_ID_MESSAGE,
+  NOT_RIGHTS_MESSAGE,
+} = require('../utils/constants');
+const NotRightError = require('../errors/NotRightError');
+const NotFoundError = require('../errors/NotFoundError');
+
+module.exports.getCards = (req, res, next) => {
+  Cards.find({})
+    .then((cards) => res.send(cards))
+    .catch(next);
+};
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  Card.create({
-    name,
-    link,
-    owner: req.user.id,
-  })
-    .then((card) => {
-      res.status(CREATE_CODE).send(card);
-    })
+  const owner = req.user._id;
+  Cards.create({ name, link, owner })
+    .then((cards) => res.send(cards))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError());
+        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
       } else {
         next(err);
       }
     });
 };
 
-module.exports.getCards = (_req, res, next) => {
-  Card.find({})
-    .then((cards) => res.status(CORRECT_CODE).send(cards))
-    .catch(next);
-};
-
 module.exports.deleteCard = (req, res, next) => {
-  Card
-    .findById(req.params.cardId)
+  Cards.findById(req.params.cardId).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError();
+      const user = String(req.user._id);
+      const cardOwner = String(card.owner);
+      if (user === cardOwner) {
+        Cards.findByIdAndRemove(req.params.cardId)
+          .then((deletedCard) => res.send(deletedCard));
+      } else {
+        next(new NotRightError(NOT_RIGHTS_MESSAGE));
       }
-      if (JSON.stringify(card.owner) !== JSON.stringify(req.user.id)) {
-        throw new BadRequireToken();
-      }
-      return Card.findByIdAndRemove(req.params.cardId);
-    })
-    .then((cards) => {
-      res.status(CORRECT_CODE).send(cards);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError());
+        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
       } else {
         next(err);
       }
@@ -59,41 +50,35 @@ module.exports.deleteCard = (req, res, next) => {
 };
 
 module.exports.likeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(
+  Cards.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user.id } },
+    { $addToSet: { likes: req.user._id } },
     { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError();
-      }
-      return res.status(CORRECT_CODE).send({ data: card });
-    })
+  ).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
+    .then((cards) => res.send(cards))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError());
+      if (err.name === 'NotFound') {
+        next(err);
+      } else if (err.name === 'CastError') {
+        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
       } else {
         next(err);
       }
     });
 };
 
-module.exports.delLikeCard = (req, res, next) => {
-  Card.findByIdAndUpdate(
+module.exports.dislikeCard = (req, res, next) => {
+  Cards.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user.id } },
+    { $pull: { likes: req.user._id } },
     { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError();
-      }
-      return res.status(CORRECT_CODE).send({ data: card });
-    })
+  ).orFail(new NotFoundError(NOT_FOUND_CARD_ID_MESSAGE))
+    .then((cards) => res.send(cards))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError());
+      if (err.name === 'NotFound') {
+        next(err);
+      } else if (err.name === 'CastError') {
+        next(new IncorrectData(INCORRECT_DATA_MESSAGE));
       } else {
         next(err);
       }

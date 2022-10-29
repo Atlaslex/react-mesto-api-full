@@ -11,7 +11,7 @@ import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 import { Route, Switch, withRouter } from 'react-router-dom';
 import Register from './Register';
-import { getUserData, authorize, register } from "../utils/auth";
+import { getUserData, authorize, register, signOut } from "../utils/auth";
 import AcceptRegist from '../images/Accept-registration.png';
 import RejectRegist from '../images/rejectRegistration.png'
 import ProtectedRoute from "./ProtectedRoute";
@@ -39,40 +39,57 @@ function App({ history }) {
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    if (loggedIn) {
-      api
-        .getUserInfo()
-        .then((userInfo) => {
-          setCurrentUser(userInfo);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [loggedIn]);
+    getUserEmail();
+}, []);
+
+  // useEffect(() => {
+  //   if (loggedIn) {
+  //     api
+  //       .getUserInfo()
+  //       .then((userInfo) => {
+  //         setCurrentUser(userInfo);
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // }, [loggedIn]);
+
+  // useEffect(() => {
+  //   if (loggedIn) {
+  //     api
+  //       .getInitialCards()
+  //       .then((cardsInfo) => {
+  //         setCards(cardsInfo);
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // }, [loggedIn]);
 
   useEffect(() => {
-    if (loggedIn) {
-      api
-        .getInitialCards()
-        .then((cardsInfo) => {
-          setCards(cardsInfo);
+    if(loggedIn){
+      Promise.all([api.getUserInfo(), api.getInitialCards()])
+        .then(([userInfo, initialCards]) => {
+          setCurrentUser(userInfo);
+          setCards(initialCards.reverse());
         })
         .catch((err) => {
           console.log(err);
         });
     }
-  }, [loggedIn]);
+  }, [loggedIn])
 
   const getUserEmail = async (token) => {
     try {
       const res = await getUserData(token);
-      if (res.data.email) {
-        setUserEmail(res.data.email);
+      if (res.email) {
+        setUserEmail(res.email);
         setLoggedIn(true);
         history.push('/')
       } else {
-        localStorage.removeItem('token')
+        // localStorage.removeItem('token')
         setLoggedIn(false);
       }
     } catch {
@@ -80,13 +97,13 @@ function App({ history }) {
     }
   }
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      getUserEmail(token);
-    }
-    // eslint-disable-next-line
-  }, []);
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   if (token) {
+  //     getUserEmail(token);
+  //   }
+  //   // eslint-disable-next-line
+  // }, []);
 
 
   const closeAllPopups = () => {
@@ -159,9 +176,31 @@ function App({ history }) {
 
   }
 
+  // function handleCardLike(card) {
+  //   const isLiked = card.likes.some(i => i === currentUser._id);
+  //   if (isLiked) {
+  //     api.deleteLike(card)
+  //       .then((newCard) => {
+  //         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  //   else {
+  //     api.setLike(card)
+  //       .then((newCard) => {
+  //         setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // }
+
   function handleCardLike(card) {
-    const isLiked = card.likes.some(i => i._id === currentUser._id);
-    if (isLiked) {
+    const isLiked = card.likes.some(i => i === currentUser._id);
+    if(isLiked) {
       api.deleteLike(card)
         .then((newCard) => {
           setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
@@ -213,7 +252,7 @@ function App({ history }) {
   const handleSignIn = async ({ email, password }) => {
     try {
       const res = await authorize(email, password);
-      localStorage.setItem('token', res.token);
+      // localStorage.setItem('token', res.token);
       setUserEmail(email);
       setLoggedIn(true);
       history.push('/');
@@ -224,13 +263,24 @@ function App({ history }) {
     }
   }
 
-  const handleSignOut = () => {
-    if (localStorage.getItem('token')) {
-      localStorage.removeItem('token')
+  // const handleSignOut = () => {
+  //   if (localStorage.getItem('token')) {
+  //     localStorage.removeItem('token')
+  //     setLoggedIn(false);
+  //     setUserEmail('');
+  //   }
+  // }
+  const handleSignOut = async () => {
+    try {
+      const res = await signOut();
       setLoggedIn(false);
       setUserEmail('');
-    }
+    } catch (err) {
+      console.dir(err);
+    } 
   }
+
+
 
   const handleRegistration = async ({ email, password }) => {
     try {

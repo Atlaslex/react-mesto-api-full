@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:3005';
+const BASE_URL = 'https://api.atlaslex.students.nomoredomains.icu';
 
 const checkAnswer = (res) => {
   if(res.ok) {

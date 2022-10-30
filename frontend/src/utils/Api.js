@@ -111,7 +111,9 @@ class Api {
 }
 
 const api = new Api({
-  baseUrl: 'https://api.atlaslex.students.nomoredomains.icu',
+  baseUrl: 
+  // 'http://localhost:3005',
+  'https://api.atlaslex.students.nomoredomains.icu',
   headers: {
     'Content-Type': 'application/json'
   }

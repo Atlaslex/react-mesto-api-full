@@ -4,3 +4,6 @@
 Пожалуйста, прикрепите в это описание ссылку на сайт, размещенный на Яндекс.Облаке.
 
 https://atlaslex.students.nomoredomains.icu
+https://api.atlaslex.students.nomoredomains.icu
+Публичный IPv4 51.250.79.233
+Вход на сервер ssh atlaslex@51.250.79.233

@@ -66,7 +66,7 @@ function App({ history }) {
         setLoggedIn(false);
       }
     } catch {
-      console.error("Ошибка?");
+      console.error("Ошибка");
     }
   }
 
@@ -205,13 +205,6 @@ function App({ history }) {
     }
   }
 
-  // const handleSignOut = () => {
-  //   if (localStorage.getItem('token')) {
-  //     localStorage.removeItem('token')
-  //     setLoggedIn(false);
-  //     setUserEmail('');
-  //   }
-  // }
   const handleSignOut = async () => {
     try {
       const res = await signOut();
@@ -238,7 +231,6 @@ function App({ history }) {
       setTextForInfoTooltip("Что-то пошло не так! Попробуйте ещё раз.");
     }
   }
-
 
 
   return (
@@ -277,7 +269,7 @@ function App({ history }) {
           isOpen={isEditAvatarPopupOpen}
           onClose={closeAllPopups}
           onUpdateAvatar={handleUpdateAvatar}
-          isLoading={isLoading}
+          // isLoading={isLoading}
         />
 
 
@@ -286,14 +278,14 @@ function App({ history }) {
           isOpen={isEditProfilePopupOpen}
           onClose={closeAllPopups}
           onUpdateUser={handleUpdateUser}
-          isLoading={isLoading}
+          // isLoading={isLoading}
         />
 
         <AddPlacePopup
           isOpen={isAddPlacePopupOpen}
           onClose={closeAllPopups}
           onAddPlace={handleAddPlaceSubmit}
-          isLoading={isLoading}
+          // isLoading={isLoading}
         />
 
         <ImagePopup
@@ -307,7 +299,7 @@ function App({ history }) {
           isOpen={isConfirmationDelete}
           onClose={closeAllPopups}
           card={cardToBeDeleted}
-          isLoading={isLoading}
+          // isLoading={isLoading}
         >
 
         </DeleteCardPopup>

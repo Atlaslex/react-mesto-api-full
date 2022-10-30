@@ -21,6 +21,7 @@
           "_id"
         ]
       },
-    ]
+    ],
+    "eslint linebreak-style": ["error", "windows"]
   }
 }

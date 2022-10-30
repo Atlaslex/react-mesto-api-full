@@ -1,12 +1,12 @@
 const Cards = require('../models/card');
 const IncorrectData = require('../errors/IncorrectData');
+const NotRightError = require('../errors/NotRightError');
+const NotFoundError = require('../errors/NotFoundError');
 const {
   INCORRECT_DATA_MESSAGE,
   NOT_FOUND_CARD_ID_MESSAGE,
   NOT_RIGHTS_MESSAGE,
 } = require('../utils/constants');
-const NotRightError = require('../errors/NotRightError');
-const NotFoundError = require('../errors/NotFoundError');
 
 module.exports.getCards = (req, res, next) => {
   Cards.find({})

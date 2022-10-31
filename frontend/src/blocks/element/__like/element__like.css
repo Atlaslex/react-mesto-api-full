@@ -5,6 +5,7 @@
   background-color: transparent;
   background-image: url(./element__like.svg);
   border: 0;
+  background-position: 50%;
  }
 
 .element__like:hover {

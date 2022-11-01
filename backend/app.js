@@ -10,7 +10,7 @@ const router = require('./routes');
 const corsMiddleware = require('./middlewares/cors');
 const { requestLogger, errorLogger } = require('./middlewares/loger');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3005 } = process.env;
 
 // console.log(process.env.NODE_ENV);
 
